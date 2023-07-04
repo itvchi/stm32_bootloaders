@@ -18,37 +18,32 @@
 
 #include <stdint.h>
 #include "stm32f4xx.h"
-#include "led.h"
-#include "systick.h"
 
 #if !defined(__SOFT_FP__) && defined(__ARM_FP)
   #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
 #endif
 
-extern uint32_t _sflash;
-extern uint32_t _isr_origin;
-
-/* System initialization function, called before main() in startup script */
-void SystemInit()
+void jump_to_application(const uint32_t app_address)
 {
-	/* Set vector table offset - for interrupt handlers addresses offset */
-	SCB->VTOR = ((uint32_t)&_sflash - (uint32_t)&_isr_origin);
+	typedef void (*jump_fnPtr)();
+
+	const uint32_t resetHandler = *(__IO uint32_t *)(app_address + 4); /* Address of application's Reset Handler */
+	jump_fnPtr run = (jump_fnPtr)resetHandler; /* Function pointer to jump to application's Reset Handler */
+
+	/* Deinit peripherals here */
+
+	__set_MSP(*((__IO uint32_t*) app_address)); /* CMSIS function - set main stack pointer */
+	run(); /* Jump to application */
 }
+
+extern uint32_t _sapp1;
+extern uint32_t _sapp2;
 
 int main(void)
 {
-	user_led_init();
-	SysTick_1hz_interrupt();
+
+	jump_to_application((uint32_t)&_sapp1);
 
     /* Loop forever */
-	while(1)
-	{
-		led_toggle(LED2);
-		for(unsigned int counter=0; counter<0xFFFFF; counter++);
-	}
-}
-
-void SysTick_Handler()
-{
-	led_toggle(LED1);
+	for(;;);
 }
