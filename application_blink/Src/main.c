@@ -25,6 +25,9 @@
   #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
 #endif
 
+extern uint32_t _bootram;
+uint32_t *bootram = &_bootram;
+
 extern uint32_t _sflash;
 extern uint32_t _isr_origin;
 
@@ -32,7 +35,7 @@ extern uint32_t _isr_origin;
 void SystemInit()
 {
 	/* Set vector table offset - for interrupt handlers addresses offset */
-	SCB->VTOR = ((uint32_t)&_sflash - (uint32_t)&_isr_origin);
+	SCB->VTOR = ((uint32_t)&_isr_origin - (uint32_t)&_sflash);
 }
 
 int main(void)
@@ -43,8 +46,15 @@ int main(void)
     /* Loop forever */
 	while(1)
 	{
-		led_toggle(LED2);
-		for(unsigned int counter=0; counter<0xFFFFF; counter++);
+		for(uint8_t i = 0; i < 20; i++)
+		{
+			led_toggle(LED2);
+			for(unsigned int counter=0; counter<0xFFFFF; counter++);
+		}
+			bootram[0]++;
+			bootram[1] = bootram[0] + 3;
+			bootram[2] = bootram[1] * bootram[0];
+			NVIC_SystemReset();
 	}
 }
 

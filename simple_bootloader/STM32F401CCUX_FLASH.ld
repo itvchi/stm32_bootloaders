@@ -134,6 +134,15 @@ SECTIONS
     . = ALIGN(4);
   } >FLASH
 
+  /* Store data in ram btween application and bootloader */
+  _bootram = ORIGIN(RAM);
+  
+  .boot :
+  {
+    . = ALIGN(4);
+	. += 0x40;
+  } >RAM
+
   /* Used by the startup to initialize data */
   _sidata = LOADADDR(.data);
 
