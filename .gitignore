@@ -1,5 +1,6 @@
 CubeIDEworkspace/
 CMSIS/
-*/Debug/
-*/Release/
+**/Debug/
+**/Release/
+**/Drivers/
 test_config/
